@@ -1,0 +1,9 @@
+[package]
+name = "hyprdly"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+indicatif = "0.17.8"
+inquire = { version = "0.7.5", features = ["editor"] }
+regex = "1.10.6"
