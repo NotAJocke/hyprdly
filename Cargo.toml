@@ -2,7 +2,7 @@
 name = "hyprdly"
 version = "0.1.0"
 edition = "2021"
-repository = "https://github.com/jocke/hyprdly"
+repository = "https://github.com/NotAJocke/hyprdly"
 
 [dependencies]
 indicatif = "0.17.8"
