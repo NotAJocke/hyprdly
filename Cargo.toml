@@ -2,8 +2,14 @@
 name = "hyprdly"
 version = "0.1.0"
 edition = "2021"
+repository = "https://github.com/jocke/hyprdly"
 
 [dependencies]
 indicatif = "0.17.8"
 inquire = { version = "0.7.5", features = ["editor"] }
 regex = "1.10.6"
+
+# The profile that 'cargo dist' will build with
+[profile.dist]
+inherits = "release"
+lto = "thin"
