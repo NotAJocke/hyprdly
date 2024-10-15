@@ -67,14 +67,14 @@ fn main() {
     match dl_result {
         Ok(s) => {
             spinner.finish();
-            let parsed = parse_output(s);
-            let total_bytes = total_download_bytes(&parsed);
+            let outputs = parse_output(s);
+            let total_bytes = total_download_bytes(&outputs);
             let human_bytes = DecimalBytes(total_bytes);
             let human_time = human_duration(end);
 
             println!("Total size: {human_bytes}");
             println!("Time spent: {human_time}");
-            println!("Downloaded {} videos", parsed.len());
+            println!("Downloaded {} videos", outputs.len());
         }
         Err(s) => {
             spinner.finish_with_message(format!("Error while download: {s}"));
