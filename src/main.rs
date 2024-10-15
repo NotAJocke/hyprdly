@@ -31,30 +31,7 @@ fn main() {
         _ => dl.simulate(false),
     };
 
-    let dl_type = inquire::Select::new("What do you want to download ?", DownloadType::options())
-        .prompt()
-        .ok()
-        .unwrap_or_default();
-    let dl_type = DownloadType::from_option(&dl_type);
-    dl.download_type(dl_type);
-
-    let dl_quality = inquire::Select::new("In which quality ?", DownloadQuality::options())
-        .prompt()
-        .ok()
-        .unwrap_or_default();
-    let dl_quality = DownloadQuality::from_option(&dl_quality);
-    dl.quality(dl_quality);
-
-    let urls = inquire::Editor::new("Input your url(s)")
-        .with_predefined_text("# Each url separated by a new line.")
-        .prompt();
-
-    let Ok(urls) = urls else {
-        eprintln!("\nNo urls provided\n");
-        exit(1);
-    };
-
-    dl.urls(&urls);
+    prompt_informations(&mut dl);
 
     let dl_args = dl.build();
 
@@ -82,4 +59,31 @@ fn main() {
             exit(1);
         }
     }
+}
+
+fn prompt_informations(dl: &mut DownloadBuilder) {
+    let dl_type = inquire::Select::new("What do you want to download ?", DownloadType::options())
+        .prompt()
+        .ok()
+        .unwrap_or_default();
+    let dl_type = DownloadType::from_option(&dl_type);
+    dl.download_type(dl_type);
+
+    let dl_quality = inquire::Select::new("In which quality ?", DownloadQuality::options())
+        .prompt()
+        .ok()
+        .unwrap_or_default();
+    let dl_quality = DownloadQuality::from_option(&dl_quality);
+    dl.quality(dl_quality);
+
+    let urls = inquire::Editor::new("Input your url(s)")
+        .with_predefined_text("# Each url separated by a new line.")
+        .prompt();
+
+    let Ok(urls) = urls else {
+        eprintln!("\nNo urls provided\n");
+        exit(1);
+    };
+
+    dl.urls(&urls);
 }
