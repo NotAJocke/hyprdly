@@ -39,8 +39,14 @@ impl DownloadBuilder {
         let parsed_urls = urls
             .lines()
             .filter(|e| !e.starts_with('#'))
+            .map(str::trim)
             .collect::<Vec<&str>>()
             .join("\n");
+
+        if parsed_urls.is_empty() {
+            eprintln!("\nNo urls provided\n");
+            exit(1);
+        }
 
         // https://regexper.com/#%5E%28https%3F%3A%5C%2F%5C%2F%5B%5E%5Cs%2F%24.%3F%23%5D.%5B%5E%5Cs%5D*%5Cn%3F%29%2B%24
         let re = Regex::new(r"^(https?://[^\s/$.?#].[^\s]*\n?)+$").unwrap();
@@ -91,6 +97,9 @@ impl DownloadBuilder {
 
         let mut output: Vec<String> = vec![
             simulate.into(),
+            "-i".into(),
+            "-o".into(),
+            "%(title)s.%(ext)s".into(),
             "--print".into(),
             "id,title,filesize_approx,duration_string".into(),
             "--format".into(),

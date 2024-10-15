@@ -6,6 +6,7 @@ use std::{
 
 mod download_builder;
 use download_builder::*;
+use indicatif::DecimalBytes;
 
 fn main() {
     let args = env::args();
@@ -14,8 +15,8 @@ fn main() {
     let mut dl = DownloadBuilder::new();
 
     match args.get(1) {
-        Some(arg) if arg == "-ns" || arg == "--no-simulate" => dl.simulate(false),
-        _ => dl.simulate(true),
+        Some(arg) if arg == "-s" || arg == "--simulate" => dl.simulate(true),
+        _ => dl.simulate(false),
     };
 
     let dl_type = inquire::Select::new("What do you want to download ?", DownloadType::options())
@@ -34,8 +35,13 @@ fn main() {
 
     let urls = inquire::Editor::new("Input your url(s)")
         .with_predefined_text("# Each url separated by a new line.")
-        .prompt()
-        .unwrap();
+        .prompt();
+
+    let Ok(urls) = urls else {
+        eprintln!("\nNo urls provided\n");
+        exit(1);
+    };
+
     dl.urls(&urls);
 
     let dl_args = dl.build();
@@ -50,7 +56,14 @@ fn main() {
     match dl_result {
         Ok(s) => {
             spinner.finish();
-            let parsed = parse_output(&s);
+            let parsed = parse_output(s);
+            let total_bytes = total_download_bytes(&parsed);
+            let human_bytes = DecimalBytes(total_bytes);
+            let human_time = human_duration(end);
+
+            println!("Total size: {human_bytes}");
+            println!("Time spent: {human_time}");
+            println!("Downloaded {} videos", parsed.len());
         }
         Err(s) => {
             spinner.finish_with_message(format!("Error while download: {s}"));
@@ -71,7 +84,7 @@ pub fn download(args: Vec<String>) -> Result<String, String> {
         cmd_output.stderr
     };
 
-    let out = String::from_utf8_lossy(&bytes);
+    let out = unsafe { String::from_utf8_unchecked(bytes) };
     let out = out.to_string();
 
     if cmd_output.status.success() {
@@ -81,28 +94,46 @@ pub fn download(args: Vec<String>) -> Result<String, String> {
     }
 }
 
-pub fn parse_output(out: &str) -> Vec<Output> {
-    let data: Vec<&str> = out.lines().map(str::trim).collect();
+pub fn parse_output(out: String) -> Vec<Output> {
+    let data: Vec<String> = out.lines().map(str::trim).map(String::from).collect();
     let amount = data.len() / 4;
 
     let mut outputs: Vec<Output> = Vec::with_capacity(amount);
 
     for i in 0..amount {
         outputs.push(Output {
-            id: data[i * 4],
-            title: data[i * 4 + 1],
-            bytes: data[i * 4 + 2],
-            duration: data[i * 4 + 3],
+            id: data[i * 4].to_owned(),
+            title: data[i * 4 + 1].to_owned(),
+            bytes: data[i * 4 + 2].to_owned(),
+            duration: data[i * 4 + 3].to_owned(),
         });
     }
 
     outputs
 }
 
+pub fn total_download_bytes(outputs: &[Output]) -> u64 {
+    outputs
+        .iter()
+        .map(|e| &e.bytes)
+        .map(|e| e.parse::<u64>().unwrap())
+        .sum()
+}
+
+pub fn human_duration(duration: Duration) -> String {
+    if duration.as_micros() < 1000 {
+        format!("{}μs", duration.as_micros())
+    } else if duration.as_millis() < 1000 {
+        format!("{}ms", duration.as_millis())
+    } else {
+        format!("{}s", duration.as_secs())
+    }
+}
+
 #[derive(Debug)]
-pub struct Output<'a> {
-    pub id: &'a str,
-    pub title: &'a str,
-    pub bytes: &'a str,
-    pub duration: &'a str,
+pub struct Output {
+    pub id: String,
+    pub title: String,
+    pub bytes: String,
+    pub duration: String,
 }
