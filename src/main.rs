@@ -1,6 +1,6 @@
 use std::{
     env,
-    process::{exit, Command},
+    process::exit,
     time::{Duration, Instant},
 };
 
@@ -69,9 +69,9 @@ fn main() {
         Ok(s) => {
             spinner.finish();
             let outputs = download::parse_output(s);
-            let total_bytes = total_download_bytes(&outputs);
+            let total_bytes = utils::total_download_bytes(&outputs);
             let human_bytes = DecimalBytes(total_bytes);
-            let human_time = human_duration(end);
+            let human_time = utils::human_duration(end);
 
             println!("Total size: {human_bytes}");
             println!("Time spent: {human_time}");
@@ -81,23 +81,5 @@ fn main() {
             spinner.finish_with_message(format!("Error while download: {s}"));
             exit(1);
         }
-    }
-}
-
-pub fn total_download_bytes(outputs: &[download::Output]) -> u64 {
-    outputs
-        .iter()
-        .map(|e| &e.bytes)
-        .map(|e| e.parse::<u64>().unwrap())
-        .sum()
-}
-
-pub fn human_duration(duration: Duration) -> String {
-    if duration.as_micros() < 1000 {
-        format!("{}μs", duration.as_micros())
-    } else if duration.as_millis() < 1000 {
-        format!("{}ms", duration.as_millis())
-    } else {
-        format!("{}s", duration.as_secs())
     }
 }
