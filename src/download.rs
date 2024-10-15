@@ -22,6 +22,7 @@ pub fn make(args: Vec<String>) -> Result<String, String> {
     }
 }
 
+#[allow(unused)]
 #[derive(Debug)]
 pub struct Output {
     pub id: String,

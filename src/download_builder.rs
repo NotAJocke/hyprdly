@@ -85,8 +85,12 @@ impl DownloadBuilder {
                     self.quality.unwrap().to_str()
                 )
             }
-            DownloadType::VideoOnly => todo!(),
-            DownloadType::Audio => todo!(),
+            DownloadType::VideoOnly => {
+                format!("bv*[height<={}]", self.quality.unwrap().to_str())
+            }
+            DownloadType::Audio => {
+                format!("ba/b[height<={}]", self.quality.unwrap().to_str())
+            }
         };
 
         let simulate = if self.simulate {
