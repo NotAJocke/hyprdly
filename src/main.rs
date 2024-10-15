@@ -4,11 +4,22 @@ use std::{
     time::{Duration, Instant},
 };
 
-mod download_builder;
 use download_builder::*;
 use indicatif::DecimalBytes;
 
+mod download_builder;
+mod utils;
+
 fn main() {
+    if utils::ytdlp_installed() {
+        eprintln!("\nYou need to install yt-dlp (https://github.com/yt-dlp/yt-dlp)\n");
+        exit(1);
+    }
+    if utils::ffmpeg_installed() {
+        eprintln!("\nYou need to install ffmpeg (https://www.ffmpeg.org)\n");
+        exit(1);
+    }
+
     let args = env::args();
     let args: Vec<String> = args.collect();
 
