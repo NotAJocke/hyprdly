@@ -8,6 +8,7 @@ pub struct DownloadBuilder {
     download_type: Option<DownloadType>,
     quality: Option<DownloadQuality>,
     urls: Vec<String>,
+    extension: Option<String>,
 }
 
 impl DownloadBuilder {
@@ -17,6 +18,7 @@ impl DownloadBuilder {
             download_type: None,
             quality: None,
             urls: vec![],
+            extension: None,
         }
     }
 
@@ -32,6 +34,11 @@ impl DownloadBuilder {
 
     pub fn quality(&mut self, quality: DownloadQuality) -> &mut Self {
         self.quality = Some(quality);
+        self
+    }
+
+    pub fn extension(&mut self, extension: String) -> &mut Self {
+        self.extension = Some(extension);
         self
     }
 
@@ -68,29 +75,29 @@ impl DownloadBuilder {
             exit(1);
         }
 
-        if self.quality.is_none() {
-            eprintln!("\nQuality isn't set\n");
-            exit(1);
-        }
-
         if self.urls.is_empty() {
             eprintln!("\nNo urls provided\n");
             exit(1);
         }
 
-        let format = match self.download_type.unwrap() {
+        let download_type = self.download_type.unwrap();
+
+        let format = match &download_type {
             DownloadType::VideoWithAudio => {
-                format!(
-                    "bv*[height<={0}]+ba/b[height<={0}]",
-                    self.quality.unwrap().to_str()
-                )
+                if let Some(quality) = self.quality {
+                    format!("bv*[height<={0}]+ba/b[height<={0}]", quality.to_str())
+                } else {
+                    "bv*+ba/b".into()
+                }
             }
             DownloadType::VideoOnly => {
-                format!("bv*[height<={}]", self.quality.unwrap().to_str())
+                if let Some(quality) = self.quality {
+                    format!("bv*[height<={}]", quality.to_str())
+                } else {
+                    "bv".into()
+                }
             }
-            DownloadType::Audio => {
-                format!("ba/b[height<={}]", self.quality.unwrap().to_str())
-            }
+            DownloadType::Audio => String::from("ba"),
         };
 
         let simulate = if self.simulate {
@@ -109,6 +116,16 @@ impl DownloadBuilder {
             "--format".into(),
             format,
         ];
+
+        match (&download_type, self.extension) {
+            (DownloadType::Audio, Some(ext)) => {
+                output.extend(["-x".into(), "--audio-format".into(), ext])
+            }
+            (DownloadType::VideoWithAudio, Some(ext)) | (DownloadType::VideoOnly, Some(ext)) => {
+                output.extend(["--remux-video".into(), ext]);
+            }
+            _ => (),
+        };
 
         for url in self.urls {
             output.push(url);

@@ -35,6 +35,10 @@ fn main() {
 
     let dl_args = dl.build();
 
+    if cfg!(debug_assertions) {
+        dbg!(&dl_args);
+    }
+
     let spinner = indicatif::ProgressBar::new_spinner();
     spinner.enable_steady_tick(Duration::from_millis(100));
 
@@ -67,14 +71,28 @@ fn prompt_informations(dl: &mut DownloadBuilder) {
         .ok()
         .unwrap_or_default();
     let dl_type = DownloadType::from_option(&dl_type);
+
+    match &dl_type {
+        DownloadType::Audio => (),
+        _ => {
+            let dl_quality = inquire::Select::new("In which quality ?", DownloadQuality::options())
+                .prompt()
+                .ok()
+                .unwrap_or_default();
+            let dl_quality = DownloadQuality::from_option(&dl_quality);
+            dl.quality(dl_quality);
+        }
+    }
+
     dl.download_type(dl_type);
 
-    let dl_quality = inquire::Select::new("In which quality ?", DownloadQuality::options())
+    let dl_ext = inquire::Text::new("In which extension ? (enter for default)")
         .prompt()
         .ok()
         .unwrap_or_default();
-    let dl_quality = DownloadQuality::from_option(&dl_quality);
-    dl.quality(dl_quality);
+    if !dl_ext.is_empty() {
+        dl.extension(dl_ext);
+    }
 
     let urls = inquire::Editor::new("Input your url(s)")
         .with_predefined_text("# Each url separated by a new line.")
