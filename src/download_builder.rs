@@ -108,7 +108,7 @@ impl DownloadBuilder {
 
         let mut output: Vec<String> = vec![
             simulate.into(),
-            "-i".into(),
+            "--no-abort-on-error".into(),
             "-o".into(),
             "%(title)s.%(ext)s".into(),
             "--print".into(),
