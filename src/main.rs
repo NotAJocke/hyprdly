@@ -72,17 +72,14 @@ fn prompt_informations(dl: &mut DownloadBuilder) {
         .unwrap_or_default();
     let dl_type = DownloadType::from_option(&dl_type);
 
-    match &dl_type {
-        DownloadType::Audio => (),
-        _ => {
-            let dl_quality = inquire::Select::new("In which quality ?", DownloadQuality::options())
-                .prompt()
-                .ok()
-                .unwrap_or_default();
-            let dl_quality = DownloadQuality::from_option(&dl_quality);
-            dl.quality(dl_quality);
-        }
-    }
+    if !matches!(&dl_type, DownloadType::Audio) {
+        let dl_quality = inquire::Select::new("In which quality ?", DownloadQuality::options())
+            .prompt()
+            .ok()
+            .unwrap_or_default();
+        let dl_quality = DownloadQuality::from_option(&dl_quality);
+        dl.quality(dl_quality);
+    };
 
     dl.download_type(dl_type);
 
