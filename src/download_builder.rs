@@ -14,7 +14,7 @@ pub struct DownloadBuilder {
 impl DownloadBuilder {
     pub fn new() -> Self {
         Self {
-            simulate: true,
+            simulate: false,
             download_type: None,
             quality: None,
             urls: vec![],
